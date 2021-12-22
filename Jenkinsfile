@@ -18,7 +18,7 @@ def APIVERSION = '52.0'
 def toolbelt = tool 'sfdxtool'
   
   
-properties([parameters([string('PreviousCommitId'), string('LatestCommitId'), [$class: 'ChoiceParameter', choiceType: 'PT_SINGLE_SELECT', filterLength: 1, filterable: false, name: 'DeploymentType', randomName: 'choice-parameter-3869384140400', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], script: [classpath: [], sandbox: false, script: 'return[\'Validate only\',\'Deploy only\',\'Delete only\',\'Deploy and Delete\']']]], [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', filterLength: 1, filterable: false, name: 'TestLevel', randomName: 'choice-parameter-3869396358700', referencedParameters: 'DeploymentType', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], script: [classpath: [], sandbox: false, script: '''if((DeploymentType.equals("Validate only")) || (DeploymentType.equals("Deploy only")) || (DeploymentType.equals("Deploy and Delete"))){
+/* properties([parameters([string('PreviousCommitId'), string('LatestCommitId'), [$class: 'ChoiceParameter', choiceType: 'PT_SINGLE_SELECT', filterLength: 1, filterable: false, name: 'DeploymentType', randomName: 'choice-parameter-3869384140400', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], script: [classpath: [], sandbox: false, script: 'return[\'Validate only\',\'Deploy only\',\'Delete only\',\'Deploy and Delete\']']]], [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', filterLength: 1, filterable: false, name: 'TestLevel', randomName: 'choice-parameter-3869396358700', referencedParameters: 'DeploymentType', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], script: [classpath: [], sandbox: false, script: '''if((DeploymentType.equals("Validate only")) || (DeploymentType.equals("Deploy only")) || (DeploymentType.equals("Deploy and Delete"))){
 				return[\'NoTestRun\',\'RunLocalTests\',\'RunSpecifiedTests\']
 				}
 				else {
@@ -27,7 +27,27 @@ properties([parameters([string('PreviousCommitId'), string('LatestCommitId'), [$
 				''']]], [$class: 'DynamicReferenceParameter', choiceType: 'ET_FORMATTED_HTML', name: 'SpecifiedTestsRun', omitValueField: true, randomName: 'choice-parameter-3869401084700', referencedParameters: 'TestLevel', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], script: [classpath: [], sandbox: false, script: '''if(TestLevel.equals("RunSpecifiedTests")){
 				inputBox="<textarea rows=\'9\' cols=\'70\' name=\'value\'></textarea>"
 				return inputBox
-					}''']]]])])
+					}''']]]])]) */
+ properties([parameters([string(defaultValue: 'HEAD~1', name: 'PreviousCommitId'), string(defaultValue: 'HEAD', name: 'LatestCommitId'), [$class: 'ChoiceParameter', choiceType: 'PT_SINGLE_SELECT', filterLength: 1, filterable: false, name: 'Deployment_Type', randomName: 'choice-parameter-2769900584016400', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], script: [classpath: [], sandbox: false, script: 'return[\'Validate Only:selected\',\'Deploy Only\',\'Delete Only\',\'Delete and Deploy\']']]], [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', filterLength: 1, filterable: false, name: 'TESTLEVEL', randomName: 'choice-parameter-2769900587260900', referencedParameters: 'Deployment_Type', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], script: [classpath: [], sandbox: false, script: '''if((Deployment_Type.equals("Validate Only")) || (Deployment_Type.equals("Deploy Only")) || (Deployment_Type.equals("Delete and Deploy"))){
+
+                return[\'NoTestRun\',\'RunLocalTests\',\'RunSpecifiedTests\']
+
+        }
+
+        else {
+
+        return[\'Test not applicable while deleting components\']
+
+        }
+
+        ''']]], [$class: 'DynamicReferenceParameter', choiceType: 'ET_FORMATTED_HTML', name: 'SpecifyTestClass', omitValueField: true, randomName: 'choice-parameter-2769900590860800', referencedParameters: 'TESTLEVEL', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], script: [classpath: [], sandbox: false, script: '''if(TESTLEVEL.equals("RunSpecifiedTests")){
+
+        inputBox="<textarea rows=\'9\' cols=\'70\' name=\'value\'></textarea>"
+
+        return inputBox
+
+        }''']]], gitParameter(branch: '', branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'Branch', quickFilterEnabled: true, selectedValue: 'TOP', sortMode: 'ASCENDING_SMART', tagFilter: '*', type: 'PT_BRANCH')])])
+
 
 //----------------------------------------------------------------------
 //Check if Previous and Latest commit IDs are provided.
