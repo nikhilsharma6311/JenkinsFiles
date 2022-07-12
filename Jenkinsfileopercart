@@ -1,0 +1,67 @@
+pipeline {
+    environment {
+    registry = "nikhilsharma6311/opencart"
+    registryCredential = 'docker_credentials'
+    dockerImage = ''
+  }
+   agent none
+    stages {   
+	stage('SCM Checkout') {
+	    agent {label 'wsl'}
+            steps {
+                git credentialsId: 'git_credentials', url: 'https://github.com/nikhilsharma6311/opencartdocker.git'
+                }
+        }
+        stage('Building Docker Image') {
+          agent {label 'wsl'}
+        steps {
+            script {
+                dockerImage = docker.build registry + ":$BUILD_NUMBER"
+                echo "Builded Successfully"
+                  }
+            }
+		}
+    stage('Pushing Docker-Image to Dockerhub') {
+	  agent {label 'wsl'}   
+        steps {
+             echo "Pushed Succesfully" 
+             script {
+                 docker.withRegistry( '', registryCredential ) {
+				 dockerImage.push("$BUILD_NUMBER")
+                 dockerImage.push('latest')
+                 }
+                    }   
+        }
+    }
+
+        stage('Deploying Docker-Image') {
+	 	agent {label 'wsl'}
+        steps {
+		sh "docker-compose up --build -d"
+             echo "Deployment is Successfull"     
+             }
+        }
+	    stage('Remove Unused docker image') {
+		  agent {label 'wsl'}
+          steps{
+            sh "docker rmi $registry:$BUILD_NUMBER"
+          }
+        }
+	}
+    post {
+     success {
+      emailext (attachLog: true, 
+				body: 'Created by : $BUILD_USER \nBranch : $Branch \nBuild Status : $BUILD_STATUS! \n\n\n Application deployment Sucessfull. \n\n\nClick on below link to access build logs. \n\n$BUILD_URL/console', 
+				subject: '$DEFAULT_SUBJECT', 
+				to: '$BUILD_USER_EMAIL, $DEFAULT_RECIPIENTS')
+    }
+       
+     failure {
+        emailext (attachLog: true, 
+				  body: 'Created by : $BUILD_USER \nBranch : $Branch \nBuild Status : $BUILD_STATUS! \n\n\n Application deployment Fails. \n\nClick on below link to acces build logs. \n\n$BUILD_URL/console', 
+				  subject: '$DEFAULT_SUBJECT', 
+				  to: '$BUILD_USER_EMAIL, $DEFAULT_RECIPIENTS')
+
+        }
+    }
+ }
